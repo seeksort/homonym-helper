@@ -28,7 +28,7 @@ print ("~*~*~*~ Welcome to Homonym Helper! ~*~*~*~")
 print ("------------------------------------------")
 print ("ver. 0.01")
 print ("")
-print ("This program will help you make sure you're not using homonyms incorrectly!")
+print ("This program will help you make sure you're using homonyms correctly!")
 print ("")
 print ("Currently, I can help you with finding and replacing instances of the following in a file: \n\n\"there / their / they're\" \nand \n\"your / you're\"\n")
 
@@ -52,11 +52,11 @@ def confirmDesiredPath(currentPath):
 		currentPath = os.getcwd()
 		print("Your current directory is: ")
 		print(currentPath)
-		userResp = input("Do you want to check a file in this directory? (Y/N) \n")
+		userResp = input("Do you want to check a file in this directory? (Y/N) \n(press ctrl+c to quit) \n>>").upper()
 		if userResp == "Y":
 			return currentPath
 		elif userResp == "N":
-			currentPath = input("Please enter a path to search. \n")
+			currentPath = input("Please enter a path to search. \n(press ctrl+c to quit) \n>>")
 			validatePath(currentPath)
 		else:
 			print("Please enter a valid response.")
@@ -65,7 +65,7 @@ def requestFileName():
 	'''
 	Asks user to input file name in current directory.
 	'''
-	fileName = input("Please enter the name of the file: \n")
+	fileName = input("Please enter the name of the file (press ctrl+c to quit): \n>>")
 	return fileName
 
 def openValidateFile(path):
@@ -82,7 +82,7 @@ def openValidateFile(path):
 			print("File opening was succeessful.")
 			return fileToReview
 		except FileNotFoundError:
-			print("This is not a valid file in this directory. Please try again.")
+			print("This is not a valid file in this directory. Please try this program again.\n")
 
 ### 2. Request homonym to check ### 
 #TODO (in progress)
@@ -92,32 +92,62 @@ def openValidateFile(path):
 	- a homonym
 	- not less than one character (potentially useful in future)
 '''
-def requestUserWord():
+def requestUserHomonym():
 	'''
-	Asks user to input word.
-	'''
-	userWord = input("Please enter the homonym you would like to check: \n")
-	return userWord
-
-def validateHomonym():
-	'''
-	Tries to match provided word to program's homonyms dictionary.
+	Asks user to select from list of homonyms
+	1. there / their / they're
+	2. your / you're
 	'''
 	while True:
-		word = requestUserWord()
-		for key in homonymsDict.keys():
-			if word in homonymsDict[key]:
-				homonymsToSearch = homonymsDict[key]
-				print("word success!") #debug
-				return homonymsToSearch
-			else:
-				print("That is not in our homonyms dictionary.")
+		userWord = input("Please enter the # of the homonym list you would like to check: \n 1. there / their / they're \n 2. your / you're \n>>")
+		if userWord == "1":
+			userWord = ["there", "their", "they're"]
+			return userWord
+		elif userWord == "2":
+			userWord = ["your", "you're"]
+			return userWord
+		else:
+			print("That is not one of the options.")
 
+### 3. Scan file ###
+'''
+- Split file into list
+- Scan list for instances of words in the list
+- Return 4 words before and 4 words after
+- Return: no matches found
+- Return: each match, go to 4
+'''
+def validateforHomonym(textFragment, homonymlist):
+	for homonym in homonymlist:
+		textFragmentList = textFragment.split()
+		if len(textFragmentList) > 6:
+			if homonym in textFragmentList[3].lower():
+				print(homonymlist)
+				print("homonym:" + homonym)
+				print(textFragment)
+				print(textFragmentList)
+				print("success?")
+				
+
+def textFragmentDisplay(list, num):
+	if num < 4:
+		fragmentList = list[0:num+3]
+	else:
+		fragmentList = list[num-4:num+3]
+	textFragment = " ".join(fragmentList)
+	return textFragment
+
+def compareHomonymToText(fileText, homonymlist):
+	textList = fileText.split()
+	counter = 0
+	while counter < len(textList):
+		textFragment = textFragmentDisplay(textList, counter)
+		validateforHomonym(textFragment, homonymlist)
+		#print(counter)
+		counter += 1
+	print(textList)
 '''
 ## TODO ##
-3. Scan file
-	+ Return: no matches found
-	+ Return: each match, go to 4
 4. Display each match in context (5 words before & after), request user to confirm or change word
 5. If changed, display change in context before changing in file ("This sentence has not yet been changed. Please confirm change below.")
 6. If approved, change text fragment, if not, move on
@@ -132,9 +162,8 @@ fileToReview = openValidateFile(filePath)
 readFile = fileToReview.read()
 print("File contents are below:\n")
 print(readFile) #debug
-validateHomonym()
-
-
+wordsToCheck = requestUserHomonym()
+compareHomonymToText(readFile, wordsToCheck)
 
 
 
